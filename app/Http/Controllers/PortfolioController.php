@@ -16,7 +16,9 @@ class PortfolioController extends Controller
      */
     public function index()
     {
-        $portfolios = Portfolio::with(['template', 'images'])->get();
+        $portfolios = Portfolio::with(['template', 'images'])
+            ->whereNotNull('template_id')
+            ->get();
         return view('portfolios.index', compact('portfolios'));
     }
 
@@ -41,7 +43,12 @@ class PortfolioController extends Controller
             'template_id' => 'required|exists:portfolio_templates,id',
             // Personal Information
             'full_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            // Require Gmail specifically
+            'email' => ['required','email','max:255', function ($attribute, $value, $fail) {
+                if (!preg_match('/@gmail\.com$/i', $value)) {
+                    $fail('Email harus alamat Gmail (contoh: user@gmail.com).');
+                }
+            }],
             'phone' => 'nullable|string|max:20',
             'linkedin' => 'nullable|url|max:255',
             'github' => 'nullable|url|max:255',
@@ -51,6 +58,8 @@ class PortfolioController extends Controller
             'experience' => 'nullable|string',
             'skills' => 'nullable|string',
             'certifications' => 'nullable|string',
+            'certificate_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
+            'certificate_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
             // Images
             'images.*.file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'images.*.title' => 'nullable|string|max:255',
@@ -63,6 +72,31 @@ class PortfolioController extends Controller
             'full_name', 'email', 'phone', 'linkedin', 'github', 'website',
             'about_me', 'education', 'experience', 'skills', 'certifications'
         ]);
+        
+        $data['user_id'] = 1; // Default user for now
+        
+        // Handle single certificate image upload (backwards compatible)
+        if ($request->hasFile('certificate_image')) {
+            $file = $request->file('certificate_image');
+            $filename = time() . '_cert_' . $file->getClientOriginalName();
+            $path = $file->storeAs('certificate-images', $filename, 'public');
+            $data['certificate_image'] = $path;
+        }
+
+        // Handle multiple certificate images (preferred)
+        if ($request->hasFile('certificate_images')) {
+            $certPaths = [];
+            foreach ($request->file('certificate_images') as $file) {
+                if ($file) {
+                    $filename = time() . '_cert_' . $file->getClientOriginalName();
+                    $path = $file->storeAs('certificate-images', $filename, 'public');
+                    $certPaths[] = $path;
+                }
+            }
+            if (!empty($certPaths)) {
+                $data['certificate_images'] = $certPaths;
+            }
+        }
         
         // Create portfolio
         $portfolio = Portfolio::create($data);
@@ -121,13 +155,14 @@ class PortfolioController extends Controller
     {
         $portfolio = Portfolio::findOrFail($id);
         
-        $request->validate([
+    $request->validate([
             'project_name' => 'required|string|max:255',
             'project_title' => 'required|string|max:255',
             'description' => 'required|string',
             'template_id' => 'required|exists:portfolio_templates,id',
             'project_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'additional_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'additional_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'certificate_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096'
         ]);
 
         $data = $request->only(['project_name', 'project_title', 'description', 'template_id']);
@@ -181,6 +216,42 @@ class PortfolioController extends Controller
 
         $portfolio->update($data);
 
+        // Handle single certificate image upload separately (backwards compatible)
+        if ($request->hasFile('certificate_image')) {
+            if ($portfolio->certificate_image) {
+                Storage::disk('public')->delete($portfolio->certificate_image);
+            }
+
+            $file = $request->file('certificate_image');
+            $filename = time() . '_cert_' . $file->getClientOriginalName();
+            $path = $file->storeAs('certificate-images', $filename, 'public');
+
+            $portfolio->certificate_image = $path;
+            $portfolio->save();
+        }
+
+        // Handle multiple certificate images: replace previous set if provided
+        if ($request->hasFile('certificate_images')) {
+            // Delete old certificate images if exist
+            if ($portfolio->certificate_images && is_array($portfolio->certificate_images)) {
+                foreach ($portfolio->certificate_images as $oldPath) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            }
+
+            $certPaths = [];
+            foreach ($request->file('certificate_images') as $file) {
+                if ($file) {
+                    $filename = time() . '_cert_' . $file->getClientOriginalName();
+                    $path = $file->storeAs('certificate-images', $filename, 'public');
+                    $certPaths[] = $path;
+                }
+            }
+
+            $portfolio->certificate_images = $certPaths;
+            $portfolio->save();
+        }
+
         return redirect()->route('portfolios.index')->with('success', 'Portfolio berhasil diperbarui!');
     }
 
@@ -194,6 +265,16 @@ class PortfolioController extends Controller
         // Delete all images
         foreach ($portfolio->images as $image) {
             Storage::disk('public')->delete($image->image_path);
+        }
+        // Delete certificate image if exists
+        if ($portfolio->certificate_image) {
+            Storage::disk('public')->delete($portfolio->certificate_image);
+        }
+        // Delete multiple certificate images if exist
+        if ($portfolio->certificate_images && is_array($portfolio->certificate_images)) {
+            foreach ($portfolio->certificate_images as $path) {
+                Storage::disk('public')->delete($path);
+            }
         }
         
         $portfolio->delete();
@@ -246,7 +327,7 @@ class PortfolioController extends Controller
         // Handle project image
         $projectImage = '';
         if (isset($portfolioData['project_image']) && $portfolioData['project_image']) {
-            $projectImage = asset('storage/' . $portfolioData['project_image']);
+            $projectImage = 'data:image/jpeg;base64,' . base64_encode(file_get_contents(public_path('storage/' . $portfolioData['project_image'])));
         } else {
             $projectImage = 'https://via.placeholder.com/800x400?text=No+Image';
         }
@@ -256,12 +337,35 @@ class PortfolioController extends Controller
         $additionalImages = '';
         if (isset($portfolioData['additional_images']) && is_array($portfolioData['additional_images'])) {
             foreach ($portfolioData['additional_images'] as $image) {
+                $imageData = 'data:image/jpeg;base64,' . base64_encode(file_get_contents(public_path('storage/' . $image)));
                 $additionalImages .= '<div class="image-item">';
-                $additionalImages .= '<img src="' . asset('storage/' . $image) . '" alt="Project Image" class="additional-image">';
+                $additionalImages .= '<img src="' . $imageData . '" alt="Project Image" class="additional-image">';
                 $additionalImages .= '</div>';
             }
         }
         $html = str_replace('{{additional_images}}', $additionalImages, $html);
+        // Personal information replacements for preview
+        $html = str_replace('{{full_name}}', $portfolioData['full_name'] ?? '', $html);
+        $html = str_replace('{{email}}', $portfolioData['email'] ?? '', $html);
+        $html = str_replace('{{phone}}', $portfolioData['phone'] ?? '', $html);
+        $html = str_replace('{{linkedin}}', $portfolioData['linkedin'] ?? '', $html);
+        $html = str_replace('{{github}}', $portfolioData['github'] ?? '', $html);
+        $html = str_replace('{{website}}', $portfolioData['website'] ?? '', $html);
+        $html = str_replace('{{about_me}}', $portfolioData['about_me'] ?? '', $html);
+        $html = str_replace('{{education}}', $portfolioData['education'] ?? '', $html);
+        $html = str_replace('{{experience}}', $portfolioData['experience'] ?? '', $html);
+        $html = str_replace('{{skills}}', $portfolioData['skills'] ?? '', $html);
+        $html = str_replace('{{certifications}}', $portfolioData['certifications'] ?? '', $html);
+
+        // Certificate images in preview (if provided as array of paths)
+        $certImagesHtml = '';
+        if (isset($portfolioData['certificate_images']) && is_array($portfolioData['certificate_images'])) {
+            foreach ($portfolioData['certificate_images'] as $img) {
+                $imageData = 'data:image/jpeg;base64,' . base64_encode(file_get_contents(public_path('storage/' . $img)));
+                $certImagesHtml .= '<div class="cert-item"><img src="' . $imageData . '" alt="Sertifikat" style="max-width:150px; max-height:150px;"/></div>';
+            }
+        }
+        $html = str_replace('{{certificate_images}}', $certImagesHtml, $html);
         
         return '<!DOCTYPE html><html><head><style>' . $css . '</style></head><body>' . $html . '</body></html>';
     }
@@ -293,7 +397,10 @@ class PortfolioController extends Controller
         
         // Get main image
         $mainImage = $portfolio->mainImage;
-        $mainImagePath = $mainImage ? asset('storage/' . $mainImage->image_path) : '';
+        $mainImagePath = '';
+        if ($mainImage && file_exists(public_path('storage/' . $mainImage->image_path))) {
+            $mainImagePath = 'data:image/jpeg;base64,' . base64_encode(file_get_contents(public_path('storage/' . $mainImage->image_path)));
+        }
         
         // Replace placeholders with actual data
         $html = str_replace('{{project_name}}', $portfolio->project_name, $html);
@@ -306,20 +413,52 @@ class PortfolioController extends Controller
         if ($additionalImages->count() > 0) {
             $additionalImagesHTML = '';
             foreach ($additionalImages as $image) {
-                $additionalImagesHTML .= '<div class="image-item">';
-                $additionalImagesHTML .= '<img src="' . asset('storage/' . $image->image_path) . '" alt="' . ($image->title ?: 'Project Image') . '" class="additional-image">';
-                if ($image->title) {
-                    $additionalImagesHTML .= '<h4 class="image-title">' . $image->title . '</h4>';
+                if (file_exists(public_path('storage/' . $image->image_path))) {
+                    $imageData = 'data:image/jpeg;base64,' . base64_encode(file_get_contents(public_path('storage/' . $image->image_path)));
+                    $additionalImagesHTML .= '<div class="image-item">';
+                    $additionalImagesHTML .= '<img src="' . $imageData . '" alt="' . ($image->title ?: 'Project Image') . '" class="additional-image">';
+                    if ($image->title) {
+                        $additionalImagesHTML .= '<h4 class="image-title">' . $image->title . '</h4>';
+                    }
+                    if ($image->description) {
+                        $additionalImagesHTML .= '<p class="image-description">' . $image->description . '</p>';
+                    }
+                    $additionalImagesHTML .= '</div>';
                 }
-                if ($image->description) {
-                    $additionalImagesHTML .= '<p class="image-description">' . $image->description . '</p>';
-                }
-                $additionalImagesHTML .= '</div>';
             }
             $html = str_replace('{{additional_images}}', $additionalImagesHTML, $html);
         } else {
             $html = str_replace('{{additional_images}}', '', $html);
         }
+
+        // Personal information replacements for saved portfolio
+        $html = str_replace('{{full_name}}', $portfolio->full_name ?? '', $html);
+        $html = str_replace('{{email}}', $portfolio->email ?? '', $html);
+        $html = str_replace('{{phone}}', $portfolio->phone ?? '', $html);
+        $html = str_replace('{{linkedin}}', $portfolio->linkedin ?? '', $html);
+        $html = str_replace('{{github}}', $portfolio->github ?? '', $html);
+        $html = str_replace('{{website}}', $portfolio->website ?? '', $html);
+        $html = str_replace('{{about_me}}', $portfolio->about_me ?? '', $html);
+        $html = str_replace('{{education}}', $portfolio->education ?? '', $html);
+        $html = str_replace('{{experience}}', $portfolio->experience ?? '', $html);
+        $html = str_replace('{{skills}}', $portfolio->skills ?? '', $html);
+        $html = str_replace('{{certifications}}', $portfolio->certifications ?? '', $html);
+
+        // Certificate images for saved portfolio
+        $certImagesHTML = '';
+        if ($portfolio->certificate_images && is_array($portfolio->certificate_images)) {
+            foreach ($portfolio->certificate_images as $img) {
+                if (file_exists(public_path('storage/' . $img))) {
+                    $imageData = 'data:image/jpeg;base64,' . base64_encode(file_get_contents(public_path('storage/' . $img)));
+                    $certImagesHTML .= '<div class="cert-item"><img src="' . $imageData . '" alt="Sertifikat" style="max-width:150px; max-height:150px;"/></div>';
+                }
+            }
+        } elseif ($portfolio->certificate_image && file_exists(public_path('storage/' . $portfolio->certificate_image))) {
+            // fallback to single legacy image
+            $imageData = 'data:image/jpeg;base64,' . base64_encode(file_get_contents(public_path('storage/' . $portfolio->certificate_image)));
+            $certImagesHTML = '<div class="cert-item"><img src="' . $imageData . '" alt="Sertifikat" style="max-width:150px; max-height:150px;"/></div>';
+        }
+        $html = str_replace('{{certificate_images}}', $certImagesHTML, $html);
         
         return '<!DOCTYPE html><html><head><style>' . $css . '</style></head><body>' . $html . '</body></html>';
     }

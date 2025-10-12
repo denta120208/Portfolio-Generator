@@ -6,13 +6,17 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\PortfolioTemplate;
 
-class PortfolioTemplateSeeder extends Seeder
+class CleanDuplicateTemplatesSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
+        // Hapus semua template yang ada
+        PortfolioTemplate::truncate();
+        
+        // Insert template yang unik saja
         $templates = [
             [
                 'name' => 'Modern Clean',
@@ -93,7 +97,7 @@ class PortfolioTemplateSeeder extends Seeder
                 }
                 
                 body {
-                    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                    font-family: "Inter", sans-serif;
                     line-height: 1.6;
                     color: #333;
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -130,18 +134,6 @@ class PortfolioTemplateSeeder extends Seeder
                 
                 .portfolio-content {
                     padding: 60px 40px;
-                }
-                
-                .project-image-container {
-                    margin-bottom: 40px;
-                    text-align: center;
-                }
-                
-                .main-image {
-                    max-width: 100%;
-                    height: auto;
-                    border-radius: 15px;
-                    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
                 }
                 
                 .personal-info-section {
@@ -231,6 +223,18 @@ class PortfolioTemplateSeeder extends Seeder
                     margin: 5px;
                 }
                 
+                .project-image-container {
+                    margin-bottom: 40px;
+                    text-align: center;
+                }
+                
+                .main-image {
+                    max-width: 100%;
+                    height: auto;
+                    border-radius: 15px;
+                    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+                }
+                
                 .project-description h3 {
                     font-size: 2rem;
                     margin-bottom: 20px;
@@ -245,24 +249,32 @@ class PortfolioTemplateSeeder extends Seeder
                 
                 .additional-images {
                     margin-top: 40px;
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                    gap: 20px;
+                }
+                
+                .image-item {
+                    margin-bottom: 30px;
+                    text-align: center;
                 }
                 
                 .additional-image {
-                    width: 100%;
-                    height: 250px;
-                    object-fit: cover;
+                    max-width: 100%;
+                    height: auto;
                     border-radius: 10px;
                     box-shadow: 0 10px 20px rgba(0,0,0,0.1);
                 }
+                
+                .image-title {
+                    margin-top: 15px;
+                    font-size: 1.2rem;
+                    color: #333;
+                }
+                
+                .image-description {
+                    margin-top: 10px;
+                    color: #666;
+                    font-style: italic;
+                }
                 ',
-                'template_config' => [
-                    'supports_additional_images' => true,
-                    'max_additional_images' => 6,
-                    'color_scheme' => 'gradient'
-                ],
                 'is_active' => true
             ],
             [
@@ -357,18 +369,15 @@ class PortfolioTemplateSeeder extends Seeder
                 }
                 
                 .hero-section {
-                    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
-                    background-size: 400% 400%;
-                    animation: gradientShift 15s ease infinite;
+                    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
                     padding: 80px 20px;
                     text-align: center;
                     color: white;
                 }
                 
-                @keyframes gradientShift {
-                    0% { background-position: 0% 50%; }
-                    50% { background-position: 100% 50%; }
-                    100% { background-position: 0% 50%; }
+                .hero-content {
+                    max-width: 1200px;
+                    margin: 0 auto;
                 }
                 
                 .creative-title {
@@ -386,8 +395,7 @@ class PortfolioTemplateSeeder extends Seeder
                 
                 .hero-image img {
                     max-width: 100%;
-                    height: 400px;
-                    object-fit: cover;
+                    height: auto;
                     border-radius: 20px;
                     box-shadow: 0 20px 40px rgba(0,0,0,0.2);
                 }
@@ -497,19 +505,19 @@ class PortfolioTemplateSeeder extends Seeder
                 
                 .description-box h2 {
                     font-size: 2.5rem;
-                    color: #333;
+                    color: #ff6b6b;
                     margin-bottom: 20px;
                 }
                 
                 .description-box p {
-                    font-size: 1.2rem;
+                    font-size: 1.1rem;
                     line-height: 1.8;
                     color: #666;
                 }
                 
                 .gallery-section h2 {
                     font-size: 2.5rem;
-                    color: #333;
+                    color: #4ecdc4;
                     margin-bottom: 30px;
                     text-align: center;
                 }
@@ -517,26 +525,35 @@ class PortfolioTemplateSeeder extends Seeder
                 .image-gallery {
                     display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                    gap: 20px;
+                    gap: 30px;
+                }
+                
+                .image-item {
+                    background: white;
+                    padding: 20px;
+                    border-radius: 15px;
+                    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+                    text-align: center;
                 }
                 
                 .additional-image {
-                    width: 100%;
-                    height: 300px;
-                    object-fit: cover;
-                    border-radius: 15px;
-                    transition: transform 0.3s ease;
+                    max-width: 100%;
+                    height: auto;
+                    border-radius: 10px;
+                    margin-bottom: 15px;
                 }
                 
-                .additional-image:hover {
-                    transform: scale(1.05);
+                .image-title {
+                    font-size: 1.2rem;
+                    color: #333;
+                    margin-bottom: 10px;
+                }
+                
+                .image-description {
+                    color: #666;
+                    font-style: italic;
                 }
                 ',
-                'template_config' => [
-                    'supports_additional_images' => true,
-                    'max_additional_images' => 8,
-                    'color_scheme' => 'colorful'
-                ],
                 'is_active' => true
             ],
             [
@@ -628,12 +645,12 @@ class PortfolioTemplateSeeder extends Seeder
                 
                 body {
                     font-family: "Roboto", sans-serif;
-                    line-height: 1.6;
+                    background: #f5f5f5;
                     color: #333;
                 }
                 
                 .business-portfolio {
-                    background: #f8f9fa;
+                    min-height: 100vh;
                 }
                 
                 .header-section {
@@ -649,13 +666,13 @@ class PortfolioTemplateSeeder extends Seeder
                 }
                 
                 .business-title {
-                    font-size: 3.5rem;
+                    font-size: 3rem;
                     font-weight: 700;
                     margin-bottom: 10px;
                 }
                 
                 .business-subtitle {
-                    font-size: 1.3rem;
+                    font-size: 1.5rem;
                     font-weight: 300;
                     opacity: 0.9;
                 }
@@ -772,16 +789,15 @@ class PortfolioTemplateSeeder extends Seeder
                 
                 .main-project-image {
                     max-width: 100%;
-                    height: 400px;
-                    object-fit: cover;
+                    height: auto;
                     border-radius: 10px;
                     box-shadow: 0 15px 30px rgba(0,0,0,0.1);
                 }
                 
                 .project-info h3 {
                     font-size: 2rem;
-                    margin-bottom: 20px;
                     color: #2c3e50;
+                    margin-bottom: 20px;
                 }
                 
                 .project-info p {
@@ -792,35 +808,44 @@ class PortfolioTemplateSeeder extends Seeder
                 
                 .project-gallery h3 {
                     font-size: 2rem;
-                    margin-bottom: 30px;
                     color: #2c3e50;
+                    margin-bottom: 30px;
                     text-align: center;
                 }
                 
                 .gallery-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                    gap: 20px;
+                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                    gap: 30px;
+                }
+                
+                .image-item {
+                    background: white;
+                    padding: 20px;
+                    border-radius: 10px;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+                    text-align: center;
                 }
                 
                 .additional-image {
-                    width: 100%;
-                    height: 200px;
-                    object-fit: cover;
+                    max-width: 100%;
+                    height: auto;
                     border-radius: 8px;
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-                    transition: transform 0.3s ease;
+                    margin-bottom: 15px;
                 }
                 
-                .additional-image:hover {
-                    transform: translateY(-5px);
+                .image-title {
+                    font-size: 1.2rem;
+                    color: #2c3e50;
+                    margin-bottom: 10px;
+                    font-weight: 600;
+                }
+                
+                .image-description {
+                    color: #666;
+                    font-style: italic;
                 }
                 ',
-                'template_config' => [
-                    'supports_additional_images' => true,
-                    'max_additional_images' => 6,
-                    'color_scheme' => 'professional'
-                ],
                 'is_active' => true
             ],
             [
@@ -926,8 +951,8 @@ class PortfolioTemplateSeeder extends Seeder
                 .portfolio-header h1 {
                     font-size: 3rem;
                     font-weight: 300;
+                    color: #333;
                     margin-bottom: 10px;
-                    color: #000;
                 }
                 
                 .subtitle {
@@ -1038,44 +1063,54 @@ class PortfolioTemplateSeeder extends Seeder
                 .project-image img {
                     max-width: 100%;
                     height: auto;
-                    border-radius: 4px;
                 }
                 
                 .project-description {
                     margin-bottom: 60px;
+                    text-align: center;
+                }
+                
+                .project-description p {
                     font-size: 1.1rem;
                     line-height: 1.8;
-                    color: #555;
-                    text-align: justify;
+                    color: #666;
+                    max-width: 600px;
+                    margin: 0 auto;
                 }
                 
                 .additional-gallery {
                     display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 20px;
+                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                    gap: 40px;
+                }
+                
+                .image-item {
+                    text-align: center;
                 }
                 
                 .additional-image {
-                    width: 100%;
-                    height: 200px;
-                    object-fit: cover;
-                    border-radius: 4px;
-                    transition: opacity 0.3s ease;
+                    max-width: 100%;
+                    height: auto;
+                    margin-bottom: 20px;
                 }
                 
-                .additional-image:hover {
-                    opacity: 0.8;
+                .image-title {
+                    font-size: 1.1rem;
+                    color: #333;
+                    margin-bottom: 10px;
+                    font-weight: 400;
+                }
+                
+                .image-description {
+                    color: #666;
+                    font-size: 0.9rem;
+                    font-style: italic;
                 }
                 ',
-                'template_config' => [
-                    'supports_additional_images' => true,
-                    'max_additional_images' => 4,
-                    'color_scheme' => 'minimal'
-                ],
                 'is_active' => true
             ]
         ];
-
+        
         foreach ($templates as $template) {
             PortfolioTemplate::create($template);
         }

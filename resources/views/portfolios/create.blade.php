@@ -3,6 +3,15 @@
 @section('title', 'Buat Portfolio Baru')
 
 @section('content')
+<!-- Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="text-center">
+            <h2 class="mb-0">Portfolio Generator</h2>
+            <p class="text-muted mb-0">Buat portfolio profesional dengan mudah</p>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -12,7 +21,7 @@
                 </h3>
             </div>
             <div class="card-body">
-                <form action="{{ route('portfolios.store') }}" method="POST" enctype="multipart/form-data">
+                <form id="portfolioForm" action="{{ route('portfolios.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     
                     <!-- Step 1: Template Selection -->
@@ -142,9 +151,9 @@
                         <!-- Kontak -->
                         <div class="row">
                             <div class="col-12 col-md-6 mb-3">
-                                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control" id="email" name="email" 
-                                       placeholder="contoh@email.com" required>
+                    <label for="email" class="form-label">Email (Gmail wajib) <span class="text-danger">*</span></label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                        placeholder="contoh@gmail.com" required>
                             </div>
                             <div class="col-12 col-md-6 mb-3">
                                 <label for="phone" class="form-label">Nomor HP</label>
@@ -203,6 +212,19 @@
                                 <label for="certifications" class="form-label">Sertifikasi (Opsional)</label>
                                 <textarea class="form-control" id="certifications" name="certifications" rows="3" 
                                           placeholder="Contoh:&#10;• AWS Certified Developer&#10;• Google Analytics Certified&#10;• Microsoft Azure Fundamentals"></textarea>
+                                <div class="mt-2">
+                                    <label class="form-label">Gambar Sertifikat (Opsional, bisa lebih dari 1)</label>
+                                    <div id="certificate-items" class="mb-2">
+                                        <div class="certificate-item mb-2">
+                                            <div class="input-group">
+                                                <input type="file" class="form-control certificate-file" name="certificate_images[]" accept="image/*" onchange="previewCertificateItem(this)">
+                                                <button type="button" class="btn btn-outline-danger" onclick="removeCertificateItem(this)">Hapus</button>
+                                            </div>
+                                            <div class="mt-2 certificate-preview"></div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary" onclick="addCertificateItem()">Tambah Sertifikat</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -459,5 +481,76 @@ document.getElementById('portfolioForm').addEventListener('submit', function(e) 
         return;
     }
 });
+
+// Certificate preview
+function previewCertificate(input) {
+    const preview = document.getElementById('certificatePreview');
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.classList.remove('d-none');
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.classList.add('d-none');
+    }
+}
+
+function previewCertificates(input) {
+    const container = document.getElementById('certificatePreviews');
+    container.innerHTML = '';
+
+    Array.from(input.files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'img-thumbnail me-2 mb-2';
+            img.style.maxWidth = '150px';
+            img.style.maxHeight = '150px';
+            container.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// Dynamic certificate items (create)
+function addCertificateItem() {
+    const container = document.getElementById('certificate-items');
+    const div = document.createElement('div');
+    div.className = 'certificate-item mb-2';
+    div.innerHTML = `
+        <div class="input-group">
+            <input type="file" class="form-control certificate-file" name="certificate_images[]" accept="image/*" onchange="previewCertificateItem(this)">
+            <button type="button" class="btn btn-outline-danger" onclick="removeCertificateItem(this)">Hapus</button>
+        </div>
+        <div class="mt-2 certificate-preview"></div>
+    `;
+    container.appendChild(div);
+}
+
+function removeCertificateItem(button) {
+    button.closest('.certificate-item').remove();
+}
+
+function previewCertificateItem(input) {
+    const container = input.closest('.certificate-item').querySelector('.certificate-preview');
+    container.innerHTML = '';
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'img-thumbnail';
+            img.style.maxWidth = '150px';
+            img.style.maxHeight = '150px';
+            container.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    }
+}
 </script>
 @endsection

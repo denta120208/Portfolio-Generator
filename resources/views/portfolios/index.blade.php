@@ -3,6 +3,15 @@
 @section('title', 'Daftar Portfolio')
 
 @section('content')
+<!-- Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="text-center">
+            <h2 class="mb-0">Portfolio Generator</h2>
+            <p class="text-muted mb-0">Buat portfolio profesional dengan mudah</p>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -35,15 +44,15 @@
                                     <div class="card-body d-flex flex-column">
                                         <h5 class="card-title">{{ $portfolio->project_name }}</h5>
                                         <p class="card-text text-muted">{{ $portfolio->project_title }}</p>
-                                        <p class="card-text small">{{ Str::limit($portfolio->description, 100) }}</p>
+                                        <p class="card-text small">{{ Str::limit($portfolio->description ?? 'No description', 100) }}</p>
                                         
                                         <div class="mt-auto">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <small class="text-muted">
-                                                    <i class="fas fa-palette me-1"></i>{{ $portfolio->template->name }}
+                                                    <i class="fas fa-palette me-1"></i>{{ $portfolio->template ? $portfolio->template->name : 'No Template' }}
                                                 </small>
-                                                <span class="badge bg-{{ $portfolio->status == 'published' ? 'success' : 'warning' }}">
-                                                    {{ ucfirst($portfolio->status) }}
+                                                <span class="badge bg-{{ ($portfolio->status ?? 'draft') == 'published' ? 'success' : 'warning' }}">
+                                                    {{ ucfirst($portfolio->status ?? 'draft') }}
                                                 </span>
                                             </div>
                                             

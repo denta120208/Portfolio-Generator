@@ -13,6 +13,7 @@ class Portfolio extends Model
         'template_id',
         'custom_data',
         'status',
+        'user_id',
         // Personal Information
         'full_name',
         'email',
@@ -24,13 +25,20 @@ class Portfolio extends Model
         'education',
         'experience',
         'skills',
-        'certifications'
+        'certifications',
+        'certificate_image'
     ];
 
     protected $casts = [
         'additional_images' => 'array',
-        'custom_data' => 'array'
+        'custom_data' => 'array',
+        'certificate_images' => 'array'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function template()
     {

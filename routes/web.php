@@ -2,11 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PortfolioController;
+use App\Http\Controllers\AuthController;
 
 Route::get('/', function () {
     return redirect()->route('portfolios.index');
 });
 
+// Portfolio routes
 Route::resource('portfolios', PortfolioController::class);
 Route::post('portfolios/preview', [PortfolioController::class, 'preview'])->name('portfolios.preview');
 Route::get('portfolios/{id}/preview', [PortfolioController::class, 'previewPortfolio'])->name('portfolios.preview.portfolio');

@@ -90,6 +90,43 @@
                             <div class="mt-2" id="additionalPreview"></div>
                         </div>
                     </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="certificate_images" class="form-label">Gambar Sertifikat (Opsional, bisa lebih dari 1)</label>
+                            <div id="certificate-items-edit" class="mb-2">
+                                <div class="certificate-item-edit mb-2">
+                                    <div class="input-group">
+                                        <input type="file" class="form-control certificate-file-edit" name="certificate_images[]" accept="image/*" onchange="previewCertificateEditItem(this)">
+                                        <button type="button" class="btn btn-outline-danger" onclick="removeCertificateEditItem(this)">Hapus</button>
+                                    </div>
+                                    <div class="mt-2 certificate-edit-preview"></div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary" onclick="addCertificateEditItem()">Tambah Sertifikat</button>
+                            @if($portfolio->certificate_image)
+                                <div class="mt-2">
+                                    <p class="text-muted small">Sertifikat (single, legacy):</p>
+                                    <img src="{{ asset('storage/' . $portfolio->certificate_image) }}" 
+                                         class="img-thumbnail w-100" 
+                                         style="max-width: 200px; max-height: 200px;">
+                                </div>
+                            @endif
+                            @if($portfolio->certificate_images && count($portfolio->certificate_images) > 0)
+                                <div class="mt-2">
+                                    <p class="text-muted small">Sertifikat saat ini:</p>
+                                    <div class="row">
+                                        @foreach($portfolio->certificate_images as $img)
+                                            <div class="col-4 mb-2">
+                                                <img src="{{ asset('storage/' . $img) }}" class="img-thumbnail w-100" style="max-height:120px;">
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                            <div class="mt-2 d-flex flex-wrap" id="certificateEditPreviews"></div>
+                        </div>
+                    </div>
                     
                     <div class="mb-3">
                         <label for="status" class="form-label">Status</label>
@@ -149,6 +186,61 @@ function previewImages(input, previewId) {
         };
         reader.readAsDataURL(file);
     });
+}
+
+function previewMultipleEditCertificates(input) {
+    const container = document.getElementById('certificateEditPreviews');
+    container.innerHTML = '';
+
+    Array.from(input.files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'img-thumbnail me-2 mb-2';
+            img.style.maxWidth = '150px';
+            img.style.maxHeight = '150px';
+            container.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// Dynamic certificate items (edit)
+function addCertificateEditItem() {
+    const container = document.getElementById('certificate-items-edit');
+    const div = document.createElement('div');
+    div.className = 'certificate-item-edit mb-2';
+    div.innerHTML = `
+        <div class="input-group">
+            <input type="file" class="form-control certificate-file-edit" name="certificate_images[]" accept="image/*" onchange="previewCertificateEditItem(this)">
+            <button type="button" class="btn btn-outline-danger" onclick="removeCertificateEditItem(this)">Hapus</button>
+        </div>
+        <div class="mt-2 certificate-edit-preview"></div>
+    `;
+    container.appendChild(div);
+}
+
+function removeCertificateEditItem(button) {
+    button.closest('.certificate-item-edit').remove();
+}
+
+function previewCertificateEditItem(input) {
+    const container = input.closest('.certificate-item-edit').querySelector('.certificate-edit-preview');
+    container.innerHTML = '';
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'img-thumbnail';
+            img.style.maxWidth = '150px';
+            img.style.maxHeight = '150px';
+            container.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    }
 }
 </script>
 @endsection
