@@ -14,9 +14,40 @@
                     <a href="{{ route('portfolios.edit', $portfolio->id) }}" class="btn btn-success me-2">
                         <i class="fas fa-edit me-2"></i>Edit
                     </a>
-                    <a href="{{ route('portfolios.export', $portfolio->id) }}" class="btn btn-info">
-                        <i class="fas fa-download me-2"></i>Download HTML
-                    </a>
+                    
+                    <!-- Download Dropdown -->
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-info dropdown-toggle" 
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-download me-2"></i>Download
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{{ route('portfolios.export', $portfolio->id) }}">
+                                    <i class="fas fa-file-code me-2"></i>HTML (Base64)
+                                    <small class="d-block text-muted">Untuk browser</small>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('portfolios.export.external', $portfolio->id) }}">
+                                    <i class="fas fa-file-code me-2"></i>HTML (Browser Only)
+                                    <small class="d-block text-muted">Hanya bisa dibuka di Chrome/Firefox</small>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('portfolios.export.pdf', $portfolio->id) }}">
+                                    <i class="fas fa-file-pdf me-2"></i>PDF
+                                    <small class="d-block text-muted">Universal format</small>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('portfolios.export.zip', $portfolio->id) }}">
+                                    <i class="fas fa-file-archive me-2"></i>ZIP Package
+                                    <small class="d-block text-muted">HTML + Images</small>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div class="card-body">
@@ -94,9 +125,41 @@
                                     <a href="{{ route('portfolios.edit', $portfolio->id) }}" class="btn btn-success">
                                         <i class="fas fa-edit me-2"></i>Edit Portfolio
                                     </a>
-                                    <a href="{{ route('portfolios.export', $portfolio->id) }}" class="btn btn-info">
-                                        <i class="fas fa-download me-2"></i>Download HTML
-                                    </a>
+                                    
+                                    <!-- Download Dropdown -->
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-info dropdown-toggle w-100" 
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-download me-2"></i>Download
+                                        </button>
+                                        <ul class="dropdown-menu w-100">
+                                            <li>
+                                                <a class="dropdown-item" href="{{ route('portfolios.export', $portfolio->id) }}">
+                                                    <i class="fas fa-file-code me-2"></i>HTML (Base64)
+                                                    <small class="d-block text-muted">Untuk browser</small>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="{{ route('portfolios.export.external', $portfolio->id) }}">
+                                                    <i class="fas fa-file-code me-2"></i>HTML (Simple)
+                                                    <small class="d-block text-muted">Untuk document reader HP</small>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="{{ route('portfolios.export.pdf', $portfolio->id) }}">
+                                                    <i class="fas fa-file-pdf me-2"></i>PDF
+                                                    <small class="d-block text-muted">Universal format</small>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="{{ route('portfolios.export.zip', $portfolio->id) }}">
+                                                    <i class="fas fa-file-archive me-2"></i>ZIP Package
+                                                    <small class="d-block text-muted">HTML + Images</small>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    
                                     <a href="{{ route('portfolios.preview.portfolio', $portfolio->id) }}" class="btn btn-warning" target="_blank">
                                         <i class="fas fa-eye me-2"></i>Preview Template
                                     </a>
@@ -118,4 +181,24 @@
         </div>
     </div>
 </div>
+@endsection
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
 @endsection

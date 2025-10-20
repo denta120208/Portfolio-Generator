@@ -65,10 +65,50 @@
                                                    class="btn btn-outline-success btn-sm" title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <a href="{{ route('portfolios.export', $portfolio->id) }}" 
-                                                   class="btn btn-outline-info btn-sm" title="Download HTML">
-                                                    <i class="fas fa-download"></i>
-                                                </a>
+                                                
+                                                <!-- Share Button -->
+                                                @if($portfolio->is_public)
+                                                    <button type="button" class="btn btn-outline-info btn-sm" 
+                                                            onclick="copyPublicLink('{{ $portfolio->id }}')" title="Copy Link">
+                                                        <i class="fas fa-share"></i>
+                                                    </button>
+                                                @else
+                                                    <form action="{{ route('portfolios.make.public', $portfolio->id) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-outline-info btn-sm" title="Buat Public">
+                                                            <i class="fas fa-globe"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                                
+                                                <!-- Download Dropdown -->
+                                                <div class="btn-group" role="group">
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                                                            data-bs-toggle="dropdown" aria-expanded="false" title="Download">
+                                                        <i class="fas fa-download"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li>
+                                                            <a class="dropdown-item" href="{{ route('portfolios.export.external', $portfolio->id) }}">
+                                                                <i class="fas fa-file-code me-2"></i>HTML (Browser Only)
+                                                                <small class="d-block text-muted">Hanya bisa dibuka di Chrome/Firefox</small>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item" href="{{ route('portfolios.export.pdf', $portfolio->id) }}">
+                                                                <i class="fas fa-file-pdf me-2"></i>PDF
+                                                                <small class="d-block text-muted">Universal format</small>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item" href="{{ route('portfolios.export.zip', $portfolio->id) }}">
+                                                                <i class="fas fa-file-archive me-2"></i>ZIP Package
+                                                                <small class="d-block text-muted">HTML + Images</small>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                
                                                 <a href="{{ route('portfolios.preview.portfolio', $portfolio->id) }}" 
                                                    class="btn btn-outline-warning btn-sm" title="Preview" target="_blank">
                                                     <i class="fas fa-eye"></i>
@@ -104,4 +144,44 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+function copyPublicLink(portfolioId) {
+    fetch(`/portfolios/${portfolioId}/copy-link`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Copy to clipboard
+                navigator.clipboard.writeText(data.url).then(function() {
+                    // Show success message
+                    const toast = document.createElement('div');
+                    toast.className = 'toast-notification';
+                    toast.innerHTML = `
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <strong>Berhasil!</strong> Link portfolio berhasil dicopy ke clipboard.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    `;
+                    document.body.appendChild(toast);
+                    
+                    // Auto remove after 3 seconds
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 3000);
+                }).catch(function(err) {
+                    console.error('Could not copy text: ', err);
+                    alert('Link: ' + data.url);
+                });
+            } else {
+                alert('Gagal mendapatkan link portfolio');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat mengambil link');
+        });
+}
+</script>
 @endsection

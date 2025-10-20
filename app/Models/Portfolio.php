@@ -14,6 +14,8 @@ class Portfolio extends Model
         'custom_data',
         'status',
         'user_id',
+        'public_url',
+        'is_public',
         // Personal Information
         'full_name',
         'email',
